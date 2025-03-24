@@ -1,41 +1,76 @@
 import os
 import subprocess
+import sys
 from setuptools import setup, find_packages
 from setuptools.command.develop import develop
 from setuptools.command.install import install
 
 def run_mkcert():
+    """Generate certificates using mkcert"""
+    print("Starting certificate generation...")
     try:
         # Run mkcert to create and install local CA
+        print("Installing local CA with mkcert...")
         subprocess.run(["mkcert", "-install"], check=True)
 
         # Create directory for certificates if it doesn't exist
         cert_dir = os.path.join(os.path.expanduser("~"), ".toy-webauthn-certs")
         os.makedirs(cert_dir, exist_ok=True)
+        print(f"Created certificate directory: {cert_dir}")
 
         # Generate certificates for localhost
         cert_path = os.path.join(cert_dir, "localhost.pem")
         key_path = os.path.join(cert_dir, "localhost-key.pem")
+        print("Generating localhost certificates...")
         subprocess.run(["mkcert", "-cert-file", cert_path, "-key-file", key_path, "localhost"], check=True)
 
-        print(f"Certificates generated in {cert_dir}")
+        print(f"Certificates successfully generated in {cert_dir}")
+        print(f"Certificate file: {cert_path}")
+        print(f"Key file: {key_path}")
     except subprocess.CalledProcessError as e:
-        print(f"Error running mkcert: {e}")
+        print(f"Error running mkcert: {e}", file=sys.stderr)
+        raise
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"An error occurred: {e}", file=sys.stderr)
+        raise
+
+def generate_certs_command():
+    """Command line interface for certificate generation"""
+    try:
+        run_mkcert()
+    except Exception as e:
+        print(f"Certificate generation failed: {e}", file=sys.stderr)
+        sys.exit(1)
 
 class PostDevelopCommand(develop):
+    """Post-development command to install certificates."""
     def run(self):
-        run_mkcert()
         develop.run(self)
+        print("Running post-develop certificate setup...")
+        try:
+            run_mkcert()
+        except Exception as e:
+            print(f"Warning: Certificate generation failed: {e}", file=sys.stderr)
+            print("You can generate certificates later using: toy-webauthn-generate-certs")
 
 class PostInstallCommand(install):
+    """Post-installation command to install certificates."""
     def run(self):
-        run_mkcert()
         install.run(self)
+        print("Running post-install certificate setup...")
+        try:
+            run_mkcert()
+        except Exception as e:
+            print(f"Warning: Certificate generation failed: {e}", file=sys.stderr)
+            print("You can generate certificates later using: toy-webauthn-generate-certs")
 
-with open("README.md", "r", encoding="utf-8") as fh:
-    long_description = fh.read()
+# Read README.md content
+try:
+    with open("README.md", "r", encoding="utf-8") as fh:
+        long_description = fh.read()
+except FileNotFoundError:
+    long_description = "A playful WebAuthn implementation in Flask"
+    print("Warning: README.md not found, using default description")
 
 setup(
     name="ToyWebAuthN",
@@ -73,6 +108,7 @@ setup(
     entry_points={
         'console_scripts': [
             'toy-webauthn=toy_web_auth_n.main:main',
+            'toy-webauthn-generate-certs=setup:generate_certs_command',
         ],
     },
     cmdclass={
