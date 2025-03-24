@@ -10,6 +10,7 @@ from fido2.utils import websafe_encode, websafe_decode
 
 from ..common.WebAuthnBase import WebAuthnBase
 
+
 class WebAuthnRegistration(WebAuthnBase):
     def begin(self, username):
         user_id = os.urandom(32)

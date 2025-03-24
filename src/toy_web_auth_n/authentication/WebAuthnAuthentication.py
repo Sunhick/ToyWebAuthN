@@ -8,13 +8,7 @@ from fido2.utils import websafe_encode, websafe_decode
 from fido2.cose import ES256, RS256
 
 from ..common.WebAuthnBase import WebAuthnBase
-
-class Credential:
-    """Represents a WebAuthn credential."""
-    def __init__(self, credential_dict):
-        self.id = credential_dict['id']
-        self.public_key = credential_dict['public_key']
-        self.sign_count = credential_dict['sign_count']
+from ..common.Credential import Credential
 
 class WebAuthnAuthentication(WebAuthnBase):
     def begin(self):

@@ -9,6 +9,7 @@ from .authentication.WebAuthnAuthentication import WebAuthnAuthentication
 from .registration.WebAuthnRegistration import WebAuthnRegistration
 
 
+
 class WebAuthnManager:
     def __init__(self):
         self.origins = [
@@ -24,11 +25,9 @@ class WebAuthnManager:
         self.registration = WebAuthnRegistration(self.server, self.credentials)
         self.authentication = WebAuthnAuthentication(self.server, self.credentials)
 
-
 class WebAuthnApp:
     def __init__(self):
-        template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
-        self.app = Flask(__name__, template_folder=template_dir)
+        self.app = Flask(__name__)
         self.app.secret_key = os.urandom(32)
         self.webauthn_manager = WebAuthnManager()
 
