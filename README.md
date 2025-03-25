@@ -1,75 +1,111 @@
 # ToyWebAuthN
-ToyWebAuthN is a minimalist, educational WebAuthn server implementation using Flask and Python. This project serves as a sandbox for developers to explore and understand the core concepts of Web Authentication (WebAuthn) in a simplified, "toy" environment.
 
-## Project Structure
+A demonstration implementation of WebAuthn in Python using Flask. This project provides a simple way to understand and experiment with WebAuthn authentication.
 
+## Features
+
+- WebAuthn Registration and Authentication
+- HTTPS support with automatic certificate generation
+- In-memory credential storage
+- Simple web interface
+- Comprehensive documentation
+
+## Quick Start
+
+1. Install mkcert:
+```bash
+# On macOS
+brew install mkcert
+
+# On Ubuntu/Debian
+sudo apt install mkcert
+
+# On Windows (using Chocolatey)
+choco install mkcert
 ```
-ToyWebAuthN/
-│
-├── LICENSE
-├── README.md
-├── setup.py
-├── src/
-│   └── (your source code files)
-└── venv/
-    └── (virtual environment files)
+
+2. Install ToyWebAuthN:
+```bash
+# Create and activate virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+
+# Install the package
+pip install -e .
+
+# Generate SSL certificates
+toy-webauthn-generate-certs
 ```
 
-## Setup and Installation
-
-1. Clone the repository:
-   ```
-   git clone https://github.com/yourusername/ToyWebAuthN.git
-   cd ToyWebAuthN
-   ```
-
-2. Create a virtual environment:
-   ```
-   python3 -m venv venv
-   ```
-
-3. Activate the virtual environment:
-   - On Unix or MacOS:
-     ```
-     source venv/bin/activate
-     ```
-   - On Windows:
-     ```
-     venv\Scripts\activate
-     ```
-
-4. Install the package in editable mode:
-   ```
-   pip3 install -e .
-   ```
-
-## Usage
-
-After installation, you can import and use ToyWebAuthN in your Python projects:
-
-```python
-import toy_web_auth_n
-
-# Your code here
+3. Start the server:
+```bash
+toy-webauthn
 ```
+
+4. Open your browser and navigate to:
+```
+https://localhost:5000
+```
+
+## Documentation
+
+For detailed documentation, see [docs/README.md](docs/README.md).
 
 ## Development
 
-To make changes to the project:
+### Prerequisites
 
-1. Ensure you're in the virtual environment.
-2. Make your changes in the `src/` directory.
-3. The changes will be immediately reflected due to the editable install.
+- Python 3.7 or higher
+- mkcert
+- virtualenv or venv
 
-## License
+### Setup Development Environment
 
-This project is licensed under the terms of the LICENSE file included in the repository.
+1. Clone the repository:
+```bash
+git clone [repository-url]
+cd ToyWebAuthN
+```
+
+2. Create and activate virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+```
+
+3. Install development dependencies:
+```bash
+pip install -e ".[dev]"
+```
+
+4. Generate certificates:
+```bash
+toy-webauthn-generate-certs
+```
+
+### Running Tests
+
+```bash
+pytest
+```
+
+## Security Notes
+
+This is a demonstration implementation and should not be used in production without significant security enhancements:
+
+1. The credential storage is in-memory only
+2. No user verification is required
+3. Limited origin validation
+4. No rate limiting
+5. No persistent storage
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
 
-## Support
+## License
 
-If you encounter any problems or have any questions, please open an issue on the GitHub repository.
-```
+[Add your license information here]
