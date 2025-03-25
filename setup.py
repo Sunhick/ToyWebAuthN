@@ -2,8 +2,11 @@ import os
 import subprocess
 import sys
 from setuptools import setup, find_packages
-from setuptools.command.develop import develop
 from setuptools.command.install import install
+from setuptools.command.develop import develop
+from setuptools.command.egg_info import egg_info
+import subprocess
+import os
 
 def run_mkcert():
     """Generate certificates using mkcert"""
@@ -64,6 +67,28 @@ class PostInstallCommand(install):
             print(f"Warning: Certificate generation failed: {e}", file=sys.stderr)
             print("You can generate certificates later using: toy-webauthn-generate-certs")
 
+def run_typescript_build():
+    # Run npm install
+    subprocess.check_call('npm install', shell=True)
+    # Run TypeScript compilation, ignoring errors
+    subprocess.call('npx tsc --noEmitOnError', shell=True)
+
+class CustomInstallCommand(install):
+    def run(self):
+        run_typescript_build()
+        install.run(self)
+
+class CustomDevelopCommand(develop):
+    def run(self):
+        run_typescript_build()
+        develop.run(self)
+
+class CustomEggInfoCommand(egg_info):
+    def run(self):
+        run_typescript_build()
+        egg_info.run(self)
+
+
 # Read README.md content
 try:
     with open("README.md", "r", encoding="utf-8") as fh:
@@ -114,5 +139,8 @@ setup(
     cmdclass={
         'develop': PostDevelopCommand,
         'install': PostInstallCommand,
+        'install': CustomInstallCommand,
+        'develop': CustomDevelopCommand,
+        'egg_info': CustomEggInfoCommand,
     },
 )

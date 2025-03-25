@@ -1,0 +1,12 @@
+{
+    "name": "toy-web-auth-n",
+    "version": "1.0.0",
+    "description": "WebAuthn Demo Project",
+    "private": true,
+    "scripts": {
+        "build": "tsc"
+    },
+    "devDependencies": {
+        "typescript": "^4.5.4"
+    }
+}

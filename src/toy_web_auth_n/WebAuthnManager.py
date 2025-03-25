@@ -1,4 +1,5 @@
 import os
+import subprocess
 from flask import Flask, request, render_template, session
 from fido2.webauthn import (
     PublicKeyCredentialRpEntity
@@ -36,6 +37,7 @@ class WebAuthnApp:
     def setup_routes(self):
         @self.app.route('/')
         def index():
+            # subprocess.run(["python", "src/toy_web_auth_n/build_ts.py"])
             return render_template('index.html')
 
         @self.app.route('/register/begin', methods=['POST'])
