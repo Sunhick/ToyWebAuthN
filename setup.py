@@ -123,6 +123,8 @@ setup(
         "Flask>=2.0.0",
         "fido2>=0.9.0",
         "python-dotenv>=0.17.0",
+        "pymongo>=4.11.3",
+        "cbor2>=5.6.5",
     ],
     extras_require={
         "dev": [

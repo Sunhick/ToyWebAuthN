@@ -98,6 +98,7 @@ async function authenticate(): Promise<void> {
             method: 'POST'
         });
         const options = await beginResponse.json();
+        console.log("Received auth options:", JSON.stringify(options, null, 2));
 
         options.publicKey.challenge = base64URLDecode(options.publicKey.challenge);
 
@@ -109,6 +110,7 @@ async function authenticate(): Promise<void> {
         }
 
         const credential = await navigator.credentials.get(options) as PublicKeyCredential;
+        console.log("Auth credential:", credential);
 
         const completeResponse = await fetch('/authenticate/complete', {
             method: 'POST',

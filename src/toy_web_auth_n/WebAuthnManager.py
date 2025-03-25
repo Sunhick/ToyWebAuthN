@@ -6,7 +6,7 @@ from fido2.webauthn import (
 from fido2.server import Fido2Server
 
 from .authentication.WebAuthnAuthentication import WebAuthnAuthentication
-from .registration.WebAuthNRegistration import WebAuthnRegistration
+from .registration.WebAuthnRegistration import WebAuthnRegistration
 
 
 class WebAuthnManager:
