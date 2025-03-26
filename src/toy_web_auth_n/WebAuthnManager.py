@@ -1,3 +1,33 @@
+"""
+WebAuthn Manager Module
+
+This module provides the core WebAuthn functionality and Flask integration, including:
+1. WebAuthn server configuration and initialization
+2. Relying Party (RP) setup and management
+3. Flask route handlers for WebAuthn operations
+4. Session management and state handling
+
+Key Components:
+1. WebAuthnManager:
+   - Configures the WebAuthn Relying Party
+   - Manages allowed origins
+   - Coordinates registration and authentication
+   - Handles credential storage
+
+2. WebAuthnApp:
+   - Provides Flask application setup
+   - Implements WebAuthn route handlers
+   - Manages session state
+   - Handles request/response processing
+
+Dependencies:
+    - flask: Web application framework
+    - fido2: WebAuthn/FIDO2 implementation
+    - pymongo: MongoDB database operations
+    - WebAuthnAuthentication: Authentication handling
+    - WebAuthnRegistration: Registration handling
+"""
+
 import os
 from flask import Flask, request, render_template, session
 from fido2.webauthn import PublicKeyCredentialRpEntity, AttestationConveyancePreference

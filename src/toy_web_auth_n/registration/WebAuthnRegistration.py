@@ -1,3 +1,29 @@
+"""
+WebAuthn Registration Module
+
+This module handles the WebAuthn registration process, including:
+1. Creating new user credentials
+2. Managing attestation data
+3. Storing registered credentials
+4. Handling registration state
+
+The registration flow consists of two main steps:
+1. begin() - Initiates registration by creating a new user entity and challenge
+2. complete() - Processes the authenticator's response and stores the credential
+
+Key Features:
+- Generates random user IDs for new registrations
+- Supports multiple credential algorithms (ES256, RS256)
+- Configures authenticator selection criteria
+- Manages credential storage in MongoDB
+
+Dependencies:
+    - fido2.webauthn: Core WebAuthn functionality
+    - fido2.utils: Utility functions for WebAuthn operations
+    - WebAuthnBase: Base class for WebAuthn operations
+    - Credential: Credential data management
+"""
+
 import json
 import os
 import logging

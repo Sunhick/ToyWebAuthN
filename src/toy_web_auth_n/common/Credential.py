@@ -1,3 +1,21 @@
+"""
+Credential Data Management Module
+
+This module provides functionality for managing WebAuthn credential data, including:
+1. Credential object representation
+2. Public key serialization and deserialization
+3. Credential data structure standardization
+
+Key Features:
+- CBOR encoding/decoding for public keys
+- Credential attribute management
+- Support for COSE key formats
+
+Dependencies:
+    - cbor2: CBOR encoding/decoding
+    - fido2.cose: COSE key operations
+"""
+
 import cbor2
 from fido2.cose import CoseKey
 

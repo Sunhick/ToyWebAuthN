@@ -1,3 +1,23 @@
+"""
+WebAuthn Base Module
+
+This module provides the foundation for WebAuthn operations, including:
+1. Common initialization for WebAuthn components
+2. Shared utilities for data serialization
+3. Base functionality for registration and authentication
+4. Database connection management
+
+Key Features:
+- Standardized initialization for WebAuthn components
+- FIDO2 server instance management
+- MongoDB database integration
+- Data serialization utilities for WebAuthn operations
+
+Dependencies:
+    - fido2.utils: Utility functions for WebAuthn operations
+    - pymongo: MongoDB database operations
+"""
+
 from fido2.utils import websafe_encode
 
 class WebAuthnBase:

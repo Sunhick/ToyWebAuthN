@@ -1,3 +1,23 @@
+"""
+WebAuthn Authentication Module
+
+This module handles the WebAuthn authentication process, including:
+1. Generating authentication challenges
+2. Verifying authenticator responses
+3. Managing credential state during authentication
+4. Updating credential sign counts
+
+The authentication flow consists of two main steps:
+1. begin() - Initiates authentication by generating a challenge
+2. complete() - Verifies the authenticator's response to the challenge
+
+Dependencies:
+    - fido2.webauthn: Core WebAuthn functionality
+    - fido2.utils: Utility functions for WebAuthn operations
+    - WebAuthnBase: Base class for WebAuthn operations
+    - Credential: Credential data management
+"""
+
 import json
 import logging
 from fido2.webauthn import (
