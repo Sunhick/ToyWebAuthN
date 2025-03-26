@@ -16,6 +16,7 @@ Dependencies:
     - fido2.cose: COSE key operations
 """
 
+from typing import Dict, Any
 import cbor2
 from fido2.cose import CoseKey
 
@@ -33,7 +34,7 @@ class Credential:
         sign_count (int): The number of times this credential has been used
     """
 
-    def __init__(self, credential_dict):
+    def __init__(self, credential_dict: Dict[str, Any]) -> None:
         """
         Initialize a new credential from a dictionary.
 
@@ -43,12 +44,12 @@ class Credential:
                 - public_key: The public key data
                 - sign_count: The number of times the credential has been used
         """
-        self.credential_id = credential_dict['id']
-        self.public_key = credential_dict['public_key']
-        self.sign_count = credential_dict['sign_count']
+        self.credential_id: bytes = credential_dict['id']
+        self.public_key: CoseKey = credential_dict['public_key']
+        self.sign_count: int = credential_dict['sign_count']
 
     @staticmethod
-    def deserialize_public_key(public_key_str):
+    def deserialize_public_key(public_key_str: bytes) -> CoseKey:
         """
         Convert a CBOR-encoded public key string back to a CoseKey object.
 
@@ -62,7 +63,7 @@ class Credential:
         return CoseKey.parse(p)
 
     @staticmethod
-    def serialize_public_key(public_key):
+    def serialize_public_key(public_key: CoseKey) -> bytes:
         """
         Convert a CoseKey public key object to CBOR-encoded bytes.
 
