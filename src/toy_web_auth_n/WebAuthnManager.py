@@ -4,6 +4,7 @@ from fido2.webauthn import (
     PublicKeyCredentialRpEntity
 )
 from fido2.server import Fido2Server
+from pymongo import MongoClient
 
 from .authentication.WebAuthnAuthentication import WebAuthnAuthentication
 from .registration.WebAuthnRegistration import WebAuthnRegistration
@@ -28,7 +29,7 @@ class WebAuthnManager:
         authentication (WebAuthnAuthentication): Authentication handler
     """
 
-    def __init__(self):
+    def __init__(self, db):
         """Initialize the WebAuthn manager with default configuration."""
         self.origins = [
             "https://localhost",
@@ -39,9 +40,9 @@ class WebAuthnManager:
         self.rp = PublicKeyCredentialRpEntity(self.origins[0], "localhost")
         self.server = Fido2Server(self.rp, attestation="none")
         self.server.allowed_origins = self.origins
-        self.credentials = {}
-        self.registration = WebAuthnRegistration(self.server, self.credentials)
-        self.authentication = WebAuthnAuthentication(self.server, self.credentials)
+        self.db = db
+        self.registration = WebAuthnRegistration(self.server, self.db)
+        self.authentication = WebAuthnAuthentication(self.server, self.db)
 
 
 class WebAuthnApp:
@@ -63,7 +64,11 @@ class WebAuthnApp:
         template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
         self.app = Flask(__name__, template_folder=template_dir)
         self.app.secret_key = os.urandom(32)
-        self.webauthn_manager = WebAuthnManager()
+
+        client = MongoClient('mongodb://localhost:27017/')
+        db = client['webauthn_db']
+
+        self.webauthn_manager = WebAuthnManager(db)
 
         self.setup_routes()
 

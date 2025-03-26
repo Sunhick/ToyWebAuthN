@@ -14,7 +14,7 @@ class WebAuthnBase:
         credentials (dict): Shared credential storage
     """
 
-    def __init__(self, server, credentials):
+    def __init__(self, server, db):
         """
         Initialize the WebAuthn base component.
 
@@ -23,7 +23,7 @@ class WebAuthnBase:
             credentials (dict): Shared dictionary for credential storage
         """
         self.server = server
-        self.credentials = credentials
+        self.db = db
 
     def _serialize_fido2_data(self, data):
         """

@@ -8,6 +8,7 @@ from fido2.webauthn import (
 )
 from fido2.utils import websafe_encode, websafe_decode
 
+from ..common.Credential import Credential
 from ..common.WebAuthnBase import WebAuthnBase
 
 
@@ -76,7 +77,18 @@ class WebAuthnRegistration(WebAuthnBase):
                 'sign_count': sign_count,
             }
 
-            self.credentials[websafe_encode(credential_id)] = credential_dict
+            serialized_public_key = Credential.serialize_public_key(credential_dict['public_key'])
+            logging.info(f"raw public key: {credential_dict['public_key']}")
+            logging.info(f"type public key: {type(credential_dict['public_key'])}")
+            logging.info(f"serialized key: {serialized_public_key}")
+
+            mongo_credential_dict = {
+                'type': credential_dict['type'],
+                'id': websafe_encode(credential_dict['id']),
+                'public_key': serialized_public_key,
+                'sign_count': credential_dict['sign_count']
+            }
+            self.db.credentials.insert_one(mongo_credential_dict)
 
             logging.info("Stored credential:")
             logging.info(f"  Type: {credential_dict['type']}")

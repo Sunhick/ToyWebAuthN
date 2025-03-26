@@ -5,22 +5,22 @@ from fido2.webauthn import (
     AuthenticatorData
 )
 from fido2.utils import websafe_encode, websafe_decode
-from fido2.cose import ES256, RS256
 
 from ..common.WebAuthnBase import WebAuthnBase
 from ..common.Credential import Credential
 
 class WebAuthnAuthentication(WebAuthnBase):
     def begin(self):
-        if not self.credentials:
+        credentials = list(self.db.credentials.find())
+        if not credentials:
             return json.dumps({'status': 'error', 'message': 'No credentials registered'}), 400
 
         formatted_credentials = [
             {
                 'type': 'public-key',
-                'id': cred['id'],
+                'id': websafe_decode(cred['id']),
             }
-            for cred in self.credentials.values()
+            for cred in credentials
         ]
 
         options, state = self.server.authenticate_begin(formatted_credentials)
@@ -72,7 +72,12 @@ class WebAuthnAuthentication(WebAuthnBase):
             logging.info(f"Stored challenge: {stored_challenge}")
             logging.info(f"Challenges match: {received_challenge == stored_challenge}")
 
-            credential_dict = self.credentials[websafe_encode(credential_id)]
+            credential_dict = self.db.credentials.find_one({'id': websafe_encode(credential_id)})
+            if not credential_dict:
+                raise ValueError("Credential not found")
+
+            credential_dict['public_key'] = Credential.deserialize_public_key(credential_dict['public_key'])
+            credential_dict['id'] = websafe_decode(credential_dict['id'])
             credential = Credential(credential_dict)
 
             self.server.authenticate_complete(
@@ -84,7 +89,11 @@ class WebAuthnAuthentication(WebAuthnBase):
                 signature
             )
 
-            credential_dict['sign_count'] = auth_data.counter
+            self.db.credentials.update_one(
+                {'id': websafe_encode(credential_id)},
+                {'$set': {'sign_count': auth_data.counter}}
+            )
+
             logging.info(f"Updated sign count: {auth_data.counter}")
 
             return json.dumps({'status': 'success'})
