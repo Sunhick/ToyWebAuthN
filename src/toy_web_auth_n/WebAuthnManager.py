@@ -35,7 +35,7 @@ from fido2.server import Fido2Server
 from pymongo import MongoClient
 
 from toy_web_auth_n import WebAuthnAuthentication, WebAuthnRegistration
-from toy_web_auth_n.config import LoggingConfig
+from toy_web_auth_n.config import LoggingConfig, MongoDBConfig
 
 # Initialize logger
 logger = LoggingConfig.get_logger(__name__)
@@ -96,11 +96,13 @@ class WebAuthnApp:
         self.app = Flask(__name__, template_folder=template_dir)
         self.app.secret_key = os.urandom(32)
 
-        client = MongoClient('mongodb://localhost:27017/')
-        db = client['webauthn_db']
+        # Initialize MongoDB configuration and connection
+        mongodb_config = MongoDBConfig()
+        client = MongoClient(mongodb_config.get_connection_url())
+        db = client[mongodb_config.get_database_name()]
 
         self.webauthn_manager = WebAuthnManager(db)
-        logger.info("WebAuthn manager initialized")
+        logger.info("WebAuthn manager initialized with MongoDB configuration")
 
         self.setup_routes()
 
