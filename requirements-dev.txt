@@ -1,0 +1,11 @@
+# Linting and formatting tools
+autopep8>=2.0.4        # PEP 8 formatting
+flake8>=7.0.0          # PEP 8 linting
+pylint>=3.0.3          # Advanced Python linting
+isort>=5.13.2          # Import sorting
+mypy>=1.8.0            # Type checking
+
+# Development tools
+black>=24.2.0          # Code formatting (alternative to autopep8)
+pytest>=8.0.0          # Testing framework
+pytest-cov>=4.1.0      # Test coverage reporting
