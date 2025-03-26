@@ -2,19 +2,21 @@ import os
 import sys
 import logging
 import logging.config
+from typing import Optional, Union
 import colorlog
 from pathlib import Path
+
 
 class LoggingConfig:
     """Manages logging configuration for the application."""
 
     @staticmethod
-    def setup(config_path=None, default_level=logging.INFO):
+    def setup(config_path: Optional[str] = None, default_level: int = logging.INFO) -> bool:
         """
         Set up logging configuration.
 
         Args:
-            config_path (str): Path to the logging configuration file
+            config_path (str, optional): Path to the logging configuration file
             default_level (int): Default logging level if config file is not found
 
         Returns:
@@ -82,7 +84,7 @@ class LoggingConfig:
             return False
 
     @staticmethod
-    def get_logger(name):
+    def get_logger(name: str) -> logging.Logger:
         """
         Get a logger instance with the specified name.
 
@@ -95,7 +97,7 @@ class LoggingConfig:
         return logging.getLogger(name)
 
     @staticmethod
-    def add_file_handler(logger, filename, level=logging.DEBUG):
+    def add_file_handler(logger: logging.Logger, filename: str, level: int = logging.DEBUG) -> None:
         """
         Add a file handler to the specified logger.
 
