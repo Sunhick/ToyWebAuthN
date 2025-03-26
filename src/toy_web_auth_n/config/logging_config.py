@@ -32,10 +32,16 @@ class LoggingConfig:
                 for handler in root.handlers:
                     root.removeHandler(handler)
 
+            # Common format parts
+            base_format = ('%(asctime)s %(process)d-%(thread)d '
+                         '%(levelname)-8s %(name)s: %(message)s')
+            date_format = '%Y-%m-%d %H:%M:%S'
+
             # Set up console handler with colors
             console_handler = colorlog.StreamHandler()
             console_handler.setFormatter(colorlog.ColoredFormatter(
-                fmt='%(log_color)s%(levelname)-8s%(reset)s %(blue)s%(name)s%(reset)s: %(message)s',
+                fmt=('%(log_color)s' + base_format + '%(reset)s'),
+                datefmt=date_format,
                 log_colors={
                     'DEBUG': 'cyan',
                     'INFO': 'green',
@@ -51,7 +57,8 @@ class LoggingConfig:
             # Set up file handler
             file_handler = logging.FileHandler(os.path.join(log_dir, 'webauthn.log'))
             file_handler.setFormatter(logging.Formatter(
-                '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+                fmt=base_format,
+                datefmt=date_format
             ))
             file_handler.setLevel(logging.DEBUG)
 
@@ -68,7 +75,8 @@ class LoggingConfig:
             # Basic configuration in case of any error
             logging.basicConfig(
                 level=default_level,
-                format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+                format=base_format,
+                datefmt=date_format
             )
             logging.error("Error setting up logging configuration: %s", str(e))
             return False
@@ -103,6 +111,7 @@ class LoggingConfig:
         file_handler = logging.FileHandler(os.path.join(log_dir, filename))
         file_handler.setLevel(level)
         file_handler.setFormatter(logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            '%(asctime)s %(process)d-%(thread)d %(levelname)-8s %(name)s: %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
         ))
         logger.addHandler(file_handler)
