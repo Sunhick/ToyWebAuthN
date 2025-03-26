@@ -10,8 +10,11 @@ from toy_web_auth_n.common.WebAuthnBase import WebAuthnBase
 from toy_web_auth_n.common.Credential import Credential
 
 class WebAuthnAuthentication(WebAuthnBase):
-    def begin(self):
-        credentials = list(self.db.credentials.find())
+    def begin(self, username):
+        if not username:
+            return json.dumps({'status': 'error', 'message': 'No username provided'}), 400
+
+        credentials = list(self.db.credentials.find({'username': username}))
         if not credentials:
             return json.dumps({'status': 'error', 'message': 'No credentials registered'}), 400
 

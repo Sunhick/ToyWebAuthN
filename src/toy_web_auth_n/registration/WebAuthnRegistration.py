@@ -20,6 +20,7 @@ class WebAuthnRegistration(WebAuthnBase):
             name=username,
             display_name=username,
         )
+        logging.info(f" username: {username} userId: {user_id}")
 
         options, state = self.server.register_begin(user)
         serialized_options = self._serialize_fido2_data(options)
@@ -86,7 +87,10 @@ class WebAuthnRegistration(WebAuthnBase):
                 'type': credential_dict['type'],
                 'id': websafe_encode(credential_dict['id']),
                 'public_key': serialized_public_key,
-                'sign_count': credential_dict['sign_count']
+                'sign_count': credential_dict['sign_count'],
+                'username': data['user']['name'],
+                'userId': data['user']['id'],
+                'displayName': data['user']['displayName'],
             }
             self.db.credentials.insert_one(mongo_credential_dict)
 
@@ -98,7 +102,9 @@ class WebAuthnRegistration(WebAuthnBase):
 
             return json.dumps({
                 'status': 'success',
-                'credential_id': websafe_encode(credential_id)
+                'credential_id': websafe_encode(credential_id),
+                'user_id': mongo_credential_dict['id'],
+                'username': mongo_credential_dict['username'],
             })
 
         except Exception as e:

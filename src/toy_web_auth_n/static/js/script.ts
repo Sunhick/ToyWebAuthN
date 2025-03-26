@@ -51,6 +51,11 @@ async function register(): Promise<void> {
             body: JSON.stringify({ username })
         });
         const options = await beginResponse.json();
+        const user = {
+            id: options.publicKey.user.id,
+            name: options.publicKey.user.name,
+            displayName: options.publicKey.user.displayName,
+        };
 
         console.log("Received options:", JSON.stringify(options, null, 2));
         console.log("Original challenge:", options.publicKey.public_key.challenge);
@@ -80,11 +85,14 @@ async function register(): Promise<void> {
                     clientDataJSON: arrayBufferToBase64URL(credential.response.clientDataJSON),
                 },
                 type: credential.type,
+                user: user,
             })
         });
 
         const result = await completeResponse.json();
         console.log("Registration result:", result);
+        localStorage.setItem('webauthn_user_id', result.user_id);
+        localStorage.setItem('webauthn_username', result.username);
         alert(result.status);
     } catch (error) {
         console.error("Error in registration process:", error);
@@ -93,9 +101,14 @@ async function register(): Promise<void> {
 }
 
 async function authenticate(): Promise<void> {
+    const username = prompt("Enter username:");
+    if (!username) return;
+
     try {
         const beginResponse = await fetch('/authenticate/begin', {
-            method: 'POST'
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username })
         });
         const options = await beginResponse.json();
         console.log("Received auth options:", JSON.stringify(options, null, 2));

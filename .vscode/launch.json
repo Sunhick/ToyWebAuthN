@@ -1,0 +1,60 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "ToyWebAuthN: Run Server",
+            "type": "python",
+            "request": "launch",
+            "module": "toy_web_auth_n.main",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "ToyWebAuthN: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "ToyWebAuthN: Generate Certificates",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/generate_certs.py",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "ToyWebAuthN: Remote Attach",
+            "type": "python",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 5678
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}",
+                    "remoteRoot": "."
+                }
+            ],
+            "justMyCode": false
+        }
+    ],
+    "compounds": [
+        {
+            "name": "ToyWebAuthN: Server + Remote Debug",
+            "configurations": ["ToyWebAuthN: Run Server", "ToyWebAuthN: Remote Attach"]
+        }
+    ]
+}
