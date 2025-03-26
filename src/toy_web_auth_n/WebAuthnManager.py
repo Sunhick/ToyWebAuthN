@@ -29,13 +29,15 @@ Dependencies:
 """
 
 import os
-from flask import Flask, request, render_template, session
-from fido2.webauthn import PublicKeyCredentialRpEntity, AttestationConveyancePreference
+
 from fido2.server import Fido2Server
+from fido2.webauthn import PublicKeyCredentialRpEntity, AttestationConveyancePreference
+from flask import Flask, request, render_template, session
 from pymongo import MongoClient
 
-from toy_web_auth_n import WebAuthnAuthentication, WebAuthnRegistration
+from toy_web_auth_n.authentication.WebAuthnAuthentication import WebAuthnAuthentication
 from toy_web_auth_n.config import LoggingConfig, MongoDBConfig
+from toy_web_auth_n.registration.WebAuthnRegistration import WebAuthnRegistration
 
 # Initialize logger
 logger = LoggingConfig.get_logger(__name__)

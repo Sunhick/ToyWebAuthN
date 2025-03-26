@@ -20,6 +20,7 @@ Dependencies:
 
 from fido2.utils import websafe_encode
 
+
 class WebAuthnBase:
     """
     Base class for WebAuthn operations providing common functionality.

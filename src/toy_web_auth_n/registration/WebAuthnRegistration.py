@@ -25,15 +25,16 @@ Dependencies:
 """
 
 import json
-import os
 import logging
+import os
+
+from fido2.utils import websafe_encode, websafe_decode
 from fido2.webauthn import (
-    PublicKeyCredentialUserEntity,
     AttestationObject,
     CollectedClientData,
+    PublicKeyCredentialUserEntity,
     UserVerificationRequirement
 )
-from fido2.utils import websafe_encode, websafe_decode
 
 from toy_web_auth_n.common.Credential import Credential
 from toy_web_auth_n.common.WebAuthnBase import WebAuthnBase
