@@ -5,9 +5,7 @@ This module provides configuration settings for MongoDB connections.
 """
 
 import os
-from typing import Optional
 from dotenv import load_dotenv
-
 
 class MongoDBConfig:
     """
@@ -23,19 +21,19 @@ class MongoDBConfig:
         MONGODB_SSL: Enable SSL/TLS connection (default: False)
     """
 
-    def __init__(self) -> None:
+    def __init__(self):
         """Initialize MongoDB configuration by loading environment variables."""
         load_dotenv()  # Load environment variables from .env file
 
-        self.host: str = os.getenv('MONGODB_HOST', 'localhost')
-        self.port: int = int(os.getenv('MONGODB_PORT', '27017'))
-        self.database: str = os.getenv('MONGODB_DB', 'webauthn_db')
-        self.username: Optional[str] = os.getenv('MONGODB_USER')
-        self.password: Optional[str] = os.getenv('MONGODB_PASSWORD')
-        self.auth_source: str = os.getenv('MONGODB_AUTH_SOURCE', 'admin')
-        self.ssl: bool = os.getenv('MONGODB_SSL', 'false').lower() == 'true'
+        self.host = os.getenv('MONGODB_HOST', 'localhost')
+        self.port = int(os.getenv('MONGODB_PORT', '27017'))
+        self.database = os.getenv('MONGODB_DB', 'webauthn_db')
+        self.username = os.getenv('MONGODB_USER')
+        self.password = os.getenv('MONGODB_PASSWORD')
+        self.auth_source = os.getenv('MONGODB_AUTH_SOURCE', 'admin')
+        self.ssl = os.getenv('MONGODB_SSL', 'false').lower() == 'true'
 
-    def get_connection_url(self) -> str:
+    def get_connection_url(self):
         """
         Build and return the MongoDB connection URL based on configuration.
 
@@ -57,7 +55,7 @@ class MongoDBConfig:
 
         return url
 
-    def get_database_name(self) -> str:
+    def get_database_name(self):
         """
         Get the configured database name.
 

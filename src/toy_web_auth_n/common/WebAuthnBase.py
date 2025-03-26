@@ -18,10 +18,7 @@ Dependencies:
     - pymongo: MongoDB database operations
 """
 
-from typing import Any, Dict, List, Union
 from fido2.utils import websafe_encode
-from fido2.webauthn import Fido2Server
-from pymongo.database import Database
 
 
 class WebAuthnBase:
@@ -38,7 +35,7 @@ class WebAuthnBase:
         db (pymongo.database.Database): MongoDB database connection
     """
 
-    def __init__(self, server: Fido2Server, db: Database) -> None:
+    def __init__(self, server, db):
         """
         Initialize the WebAuthn base component.
 
@@ -46,10 +43,10 @@ class WebAuthnBase:
             server (Fido2Server): The FIDO2 server instance to use
             db (pymongo.database.Database): MongoDB database connection
         """
-        self.server: Fido2Server = server
-        self.db: Database = db
+        self.server = server
+        self.db = db
 
-    def _serialize_fido2_data(self, data: Union[bytes, Dict[str, Any], List[Any], Any]) -> Union[str, Dict[str, Any], List[Any], Any]:
+    def _serialize_fido2_data(self, data):
         """
         Serialize FIDO2 data structures for JSON transmission.
 
