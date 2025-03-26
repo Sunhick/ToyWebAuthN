@@ -25,7 +25,7 @@ from fido2.utils import websafe_encode, websafe_decode
 from fido2.webauthn import (
     AuthenticatorData,
     CollectedClientData,
-    UserVerificationRequirement
+    UserVerificationRequirement,
 )
 
 from toy_web_auth_n.common.Credential import Credential
@@ -33,13 +33,37 @@ from toy_web_auth_n.common.WebAuthnBase import WebAuthnBase
 
 
 class WebAuthnAuthentication(WebAuthnBase):
+    """
+    Handles WebAuthn authentication operations.
+
+    This class manages the authentication process, including challenge generation,
+    response verification, and credential state updates.
+    """
+
     def begin(self, username):
+        """
+        Begin the authentication process for a user.
+
+        Args:
+            username (str): The username to authenticate
+
+        Returns:
+            tuple: (JSON options for the client, state for the server)
+            The JSON options include challenge and allowed credentials.
+            May also return a 400 error response if validation fails.
+        """
         if not username:
-            return json.dumps({'status': 'error', 'message': 'No username provided'}), 400
+            return json.dumps({
+                'status': 'error',
+                'message': 'No username provided'
+            }), 400
 
         credentials = list(self.db.credentials.find({'username': username}))
         if not credentials:
-            return json.dumps({'status': 'error', 'message': 'No credentials registered'}), 400
+            return json.dumps({
+                'status': 'error',
+                'message': 'No credentials registered'
+            }), 400
 
         formatted_credentials = [
             {
@@ -73,12 +97,27 @@ class WebAuthnAuthentication(WebAuthnBase):
         }
 
         logging.info(f"State stored in session: {state}")
-        return json.dumps({'publicKey': public_key_credential_request_options}), state
+        return json.dumps({
+            'publicKey': public_key_credential_request_options
+        }), state
 
     def complete(self, state, data):
+        """
+        Complete the authentication process by verifying the authenticator response.
+
+        Args:
+            state (dict): The server state from the begin() call
+            data (dict): The authenticator's response data
+
+        Returns:
+            str: JSON response indicating success or failure
+            May include a 400 status code if verification fails
+        """
         try:
             credential_id = websafe_decode(data['id'])
-            client_data = CollectedClientData(websafe_decode(data['response']['clientDataJSON']))
+            client_data = CollectedClientData(
+                websafe_decode(data['response']['clientDataJSON'])
+            )
             auth_data_raw = websafe_decode(data['response']['authenticatorData'])
             auth_data = AuthenticatorData(auth_data_raw)
             signature = websafe_decode(data['response']['signature'])
@@ -99,13 +138,19 @@ class WebAuthnAuthentication(WebAuthnBase):
             stored_challenge = state['challenge']
             logging.info(f"Received challenge: {received_challenge}")
             logging.info(f"Stored challenge: {stored_challenge}")
-            logging.info(f"Challenges match: {received_challenge == stored_challenge}")
+            logging.info(
+                f"Challenges match: {received_challenge == stored_challenge}"
+            )
 
-            credential_dict = self.db.credentials.find_one({'id': websafe_encode(credential_id)})
+            credential_dict = self.db.credentials.find_one({
+                'id': websafe_encode(credential_id)
+            })
             if not credential_dict:
                 raise ValueError("Credential not found")
 
-            credential_dict['public_key'] = Credential.deserialize_public_key(credential_dict['public_key'])
+            credential_dict['public_key'] = Credential.deserialize_public_key(
+                credential_dict['public_key']
+            )
             credential_dict['id'] = websafe_decode(credential_dict['id'])
             credential = Credential(credential_dict)
 
@@ -132,5 +177,11 @@ class WebAuthnAuthentication(WebAuthnBase):
 
             return json.dumps({'status': 'success'})
         except Exception as e:
-            logging.error(f"Error in authenticate_complete: {str(e)}", exc_info=True)
-            return json.dumps({'status': 'error', 'message': str(e)}), 400
+            logging.error(
+                f"Error in authenticate_complete: {str(e)}",
+                exc_info=True
+            )
+            return json.dumps({
+                'status': 'error',
+                'message': str(e)
+            }), 400

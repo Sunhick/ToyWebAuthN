@@ -31,16 +31,22 @@ Dependencies:
 import os
 
 from fido2.server import Fido2Server
-from fido2.webauthn import PublicKeyCredentialRpEntity, AttestationConveyancePreference
+from fido2.webauthn import (
+    PublicKeyCredentialRpEntity,
+    AttestationConveyancePreference,
+)
 from flask import Flask, request, render_template, session
 from pymongo import MongoClient
 
-from toy_web_auth_n.authentication.WebAuthnAuthentication import WebAuthnAuthentication
+from toy_web_auth_n.authentication.WebAuthnAuthentication import (
+    WebAuthnAuthentication,
+)
 from toy_web_auth_n.config import LoggingConfig, MongoDBConfig
 from toy_web_auth_n.registration.WebAuthnRegistration import WebAuthnRegistration
 
 # Initialize logger
 logger = LoggingConfig.get_logger(__name__)
+
 
 class WebAuthnManager:
     """
@@ -60,23 +66,38 @@ class WebAuthnManager:
         registration (WebAuthnRegistration): Registration handler
         authentication (WebAuthnAuthentication): Authentication handler
     """
+
     origins = [
         "https://localhost",
         "https://localhost:5000",
         "https://127.0.0.1",
-        "https://[::1]"
+        "https://[::1]",
     ]
 
     def __init__(self, db):
         """Initialize the WebAuthn manager with default configuration."""
         self.rp = PublicKeyCredentialRpEntity(id="localhost", name="WebAuthN Demo")
-        self.server = Fido2Server(self.rp, attestation=AttestationConveyancePreference.NONE, verify_origin=self.verify_origin)
+        self.server = Fido2Server(
+            self.rp,
+            attestation=AttestationConveyancePreference.NONE,
+            verify_origin=self.verify_origin,
+        )
         self.db = db
         self.registration = WebAuthnRegistration(self.server, self.db)
         self.authentication = WebAuthnAuthentication(self.server, self.db)
 
     def verify_origin(self, origin):
+        """
+        Verify if the given origin is allowed.
+
+        Args:
+            origin (str): The origin to verify
+
+        Returns:
+            bool: True if origin is allowed, False otherwise
+        """
         return origin in self.origins
+
 
 class WebAuthnApp:
     """
@@ -94,7 +115,9 @@ class WebAuthnApp:
 
     def __init__(self):
         """Initialize the Flask application with WebAuthn support."""
-        template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
+        template_dir = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), 'templates'
+        )
         self.app = Flask(__name__, template_folder=template_dir)
         self.app.secret_key = os.urandom(32)
 
@@ -110,6 +133,7 @@ class WebAuthnApp:
 
     def setup_routes(self):
         """Set up Flask routes for WebAuthn operations."""
+
         @self.app.route('/')
         def index():
             """Render the main page with WebAuthn interface."""
@@ -126,7 +150,8 @@ class WebAuthnApp:
             Returns:
                 JSON object containing WebAuthn registration options
             """
-            if request.json is None: raise ValueError("username not passed in")
+            if request.json is None:
+                raise ValueError("username not passed in")
             username = request.json['username']
             options, state = self.webauthn_manager.registration.begin(username)
             session['register_state'] = state
@@ -154,7 +179,8 @@ class WebAuthnApp:
             Returns:
                 JSON object containing WebAuthn authentication options
             """
-            if request.json is None: raise ValueError("username not passed in")
+            if request.json is None:
+                raise ValueError("username not passed in")
             username = request.json['username']
             options, state = self.webauthn_manager.authentication.begin(username)
             session['auth_state'] = state
@@ -172,4 +198,6 @@ class WebAuthnApp:
                 JSON object with authentication status
             """
             state = session.pop('auth_state')
-            return self.webauthn_manager.authentication.complete(state, request.json)
+            return self.webauthn_manager.authentication.complete(
+                state, request.json
+            )

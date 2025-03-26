@@ -32,7 +32,7 @@ class WebAuthnBase:
 
     Attributes:
         server (Fido2Server): The FIDO2 server instance
-        credentials (dict): Shared credential storage
+        db (pymongo.database.Database): MongoDB database connection
     """
 
     def __init__(self, server, db):
@@ -41,7 +41,7 @@ class WebAuthnBase:
 
         Args:
             server (Fido2Server): The FIDO2 server instance to use
-            credentials (dict): Shared dictionary for credential storage
+            db (pymongo.database.Database): MongoDB database connection
         """
         self.server = server
         self.db = db
@@ -64,7 +64,10 @@ class WebAuthnBase:
         if isinstance(data, bytes):
             return websafe_encode(data)
         elif isinstance(data, dict):
-            return {key: self._serialize_fido2_data(value) for key, value in data.items()}
+            return {
+                key: self._serialize_fido2_data(value)
+                for key, value in data.items()
+            }
         elif isinstance(data, list):
             return [self._serialize_fido2_data(item) for item in data]
         elif hasattr(data, '__dict__'):
