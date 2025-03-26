@@ -6,8 +6,8 @@ from fido2.webauthn import (
 )
 from fido2.utils import websafe_encode, websafe_decode
 
-from ..common.WebAuthnBase import WebAuthnBase
-from ..common.Credential import Credential
+from toy_web_auth_n.common.WebAuthnBase import WebAuthnBase
+from toy_web_auth_n.common.Credential import Credential
 
 class WebAuthnAuthentication(WebAuthnBase):
     def begin(self):

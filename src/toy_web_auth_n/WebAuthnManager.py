@@ -6,8 +6,8 @@ from fido2.webauthn import (
 from fido2.server import Fido2Server
 from pymongo import MongoClient
 
-from .authentication.WebAuthnAuthentication import WebAuthnAuthentication
-from .registration.WebAuthnRegistration import WebAuthnRegistration
+from toy_web_auth_n.authentication.WebAuthnAuthentication import WebAuthnAuthentication
+from toy_web_auth_n.registration.WebAuthnRegistration import WebAuthnRegistration
 
 
 class WebAuthnManager:

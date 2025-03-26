@@ -3,7 +3,7 @@ import sys
 import os
 from pathlib import Path
 
-from .WebAuthnManager import WebAuthnApp
+from toy_web_auth_n.WebAuthnManager import WebAuthnApp
 
 class LoggerSetup:
     @staticmethod
