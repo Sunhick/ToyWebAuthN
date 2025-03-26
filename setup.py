@@ -1,12 +1,12 @@
 import os
 import subprocess
 import sys
-from setuptools import setup, find_packages
-from setuptools.command.install import install
+
+from setuptools import find_packages, setup
 from setuptools.command.develop import develop
 from setuptools.command.egg_info import egg_info
-import subprocess
-import os
+from setuptools.command.install import install
+
 
 def run_mkcert():
     """Generate certificates using mkcert"""
@@ -130,7 +130,9 @@ setup(
     extras_require={
         "dev": [
             "pytest>=6.2.0",
+            "pytest-cov>=2.12.0",  # Updated for coverage support
             "flake8>=3.9.0",
+            "pytest-mock>=3.6.0",  # Added for better mocking support
         ],
     },
     entry_points={
@@ -140,10 +142,8 @@ setup(
         ],
     },
     cmdclass={
-        'develop': PostDevelopCommand,
-        'install': PostInstallCommand,
-        'install': CustomInstallCommand,
         'develop': CustomDevelopCommand,
+        'install': CustomInstallCommand,
         'egg_info': CustomEggInfoCommand,
     },
 )
