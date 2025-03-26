@@ -30,7 +30,8 @@ import logging
 from fido2.webauthn import (
     PublicKeyCredentialUserEntity,
     AttestationObject,
-    CollectedClientData
+    CollectedClientData,
+    UserVerificationRequirement
 )
 from fido2.utils import websafe_encode, websafe_decode
 
@@ -48,36 +49,40 @@ class WebAuthnRegistration(WebAuthnBase):
         )
         logging.info(f" username: {username} userId: {user_id}")
 
-        options, state = self.server.register_begin(user)
-        serialized_options = self._serialize_fido2_data(options)
+        options, state = self.server.register_begin(
+            user,
+            user_verification=UserVerificationRequirement.PREFERRED
+        )
 
-        if 'challenge' not in serialized_options:
-            serialized_options['challenge'] = websafe_encode(os.urandom(32))
-
-        logging.info(f"Generated challenge: {state['challenge']}")
-
-        serialized_options['pubKeyCredParams'] = [
-            {'type': 'public-key', 'alg': -7},  # ES256
-            {'type': 'public-key', 'alg': -257}  # RS256
-        ]
-
-        serialized_options['authenticatorSelection'] = {
-            'authenticatorAttachment': 'cross-platform',
-            'userVerification': 'discouraged'
+        # Create a base dictionary for options
+        registration_options = {
+            'challenge': websafe_encode(os.urandom(32)),
+            'rp': {'id': 'localhost', 'name': self.server.rp.name},
+            'user': {
+                'id': websafe_encode(user.id),
+                'name': user.name,
+                'displayName': user.display_name
+            },
+            'pubKeyCredParams': [
+                {'type': 'public-key', 'alg': -7},  # ES256
+                {'type': 'public-key', 'alg': -257}  # RS256
+            ],
+            'authenticatorSelection': {
+                'authenticatorAttachment': 'cross-platform',
+                'userVerification': 'preferred',  # Enable user verification
+                'requireResidentKey': False  # Optional: set to True if you want resident keys
+            }
         }
 
-        serialized_options['rp'] = {'id': 'localhost', 'name': self.server.rp.name}
+        # Update with any additional options from the server
+        server_options = self._serialize_fido2_data(options)
+        if isinstance(server_options, dict):
+            registration_options.update(server_options)
 
-        serialized_options['user'] = {
-            'id': websafe_encode(user.id),
-            'name': user.name,
-            'displayName': user.display_name
-        }
+        # Remove extensions if present
+        registration_options.pop('extensions', None)
 
-        if 'extensions' in serialized_options:
-            del serialized_options['extensions']
-
-        return json.dumps({'publicKey': serialized_options}), state
+        return json.dumps({'publicKey': registration_options}), state
 
     def complete(self, state, data):
         try:

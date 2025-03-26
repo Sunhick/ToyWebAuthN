@@ -67,5 +67,6 @@ class WebAuthnBase:
         elif isinstance(data, list):
             return [self._serialize_fido2_data(item) for item in data]
         elif hasattr(data, '__dict__'):
-            return self._serialize_fido2_data(data.__dict__)
-        return str(data)
+            # Convert object to dictionary and serialize its contents
+            return self._serialize_fido2_data(vars(data))
+        return data

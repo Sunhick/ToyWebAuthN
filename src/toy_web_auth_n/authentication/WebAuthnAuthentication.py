@@ -22,7 +22,8 @@ import json
 import logging
 from fido2.webauthn import (
     CollectedClientData,
-    AuthenticatorData
+    AuthenticatorData,
+    UserVerificationRequirement
 )
 from fido2.utils import websafe_encode, websafe_decode
 
@@ -46,7 +47,10 @@ class WebAuthnAuthentication(WebAuthnBase):
             for cred in credentials
         ]
 
-        options, state = self.server.authenticate_begin(formatted_credentials)
+        options, state = self.server.authenticate_begin(
+            formatted_credentials,
+            user_verification=UserVerificationRequirement.PREFERRED
+        )
 
         logging.info(f"Generated challenge: {state['challenge']}")
 
@@ -62,7 +66,7 @@ class WebAuthnAuthentication(WebAuthnBase):
                 for cred in formatted_credentials
             ],
             'timeout': getattr(options.public_key, 'timeout', 60000),
-            'userVerification': getattr(options.public_key, 'user_verification', 'preferred'),
+            'userVerification': 'preferred',  # Enable user verification
             'rpId': 'localhost'
         }
 
@@ -111,6 +115,11 @@ class WebAuthnAuthentication(WebAuthnBase):
                 auth_data,
                 signature
             )
+
+            # Verify that user verification was performed if required
+            if not auth_data.is_user_present() or not auth_data.is_user_verified():
+                logging.warning("User verification was not performed")
+                raise ValueError("User verification required but not performed")
 
             self.db.credentials.update_one(
                 {'id': websafe_encode(credential_id)},
