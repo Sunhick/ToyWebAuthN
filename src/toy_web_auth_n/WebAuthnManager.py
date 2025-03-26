@@ -1,15 +1,14 @@
 import os
 from flask import Flask, request, render_template, session
-from fido2.webauthn import (
-    PublicKeyCredentialRpEntity,
-    AttestationConveyancePreference
-)
+from fido2.webauthn import PublicKeyCredentialRpEntity
 from fido2.server import Fido2Server
 from pymongo import MongoClient
 
-from toy_web_auth_n.authentication.WebAuthnAuthentication import WebAuthnAuthentication
-from toy_web_auth_n.registration.WebAuthnRegistration import WebAuthnRegistration
+from toy_web_auth_n import WebAuthnAuthentication, WebAuthnRegistration
+from toy_web_auth_n.config import LoggingConfig
 
+# Initialize logger
+logger = LoggingConfig.get_logger(__name__)
 
 class WebAuthnManager:
     """
@@ -29,23 +28,21 @@ class WebAuthnManager:
         registration (WebAuthnRegistration): Registration handler
         authentication (WebAuthnAuthentication): Authentication handler
     """
-    origins = [
-        "https://localhost",
-        "https://localhost:5000",
-        "https://127.0.0.1",
-        "https://[::1]"
-    ]
 
     def __init__(self, db):
         """Initialize the WebAuthn manager with default configuration."""
-        self.rp = PublicKeyCredentialRpEntity(id="localhost", name="WebAuthN Demo")
-        self.server = Fido2Server(self.rp, attestation=AttestationConveyancePreference.NONE, verify_origin=self.verify_origin)
+        self.origins = [
+            "https://localhost",
+            "https://localhost:5000",
+            "https://127.0.0.1",
+            "https://[::1]"
+        ]
+        self.rp = PublicKeyCredentialRpEntity(self.origins[0], "localhost")
+        self.server = Fido2Server(self.rp, attestation="none")
+        self.server.allowed_origins = self.origins
         self.db = db
         self.registration = WebAuthnRegistration(self.server, self.db)
         self.authentication = WebAuthnAuthentication(self.server, self.db)
-
-    def verify_origin(self, origin):
-        return origin in self.origins
 
 
 class WebAuthnApp:
@@ -72,6 +69,7 @@ class WebAuthnApp:
         db = client['webauthn_db']
 
         self.webauthn_manager = WebAuthnManager(db)
+        logger.info("WebAuthn manager initialized")
 
         self.setup_routes()
 
@@ -93,7 +91,6 @@ class WebAuthnApp:
             Returns:
                 JSON object containing WebAuthn registration options
             """
-            if request.json is None: raise ValueError("username not passed in")
             username = request.json['username']
             options, state = self.webauthn_manager.registration.begin(username)
             session['register_state'] = state
@@ -121,9 +118,7 @@ class WebAuthnApp:
             Returns:
                 JSON object containing WebAuthn authentication options
             """
-            if request.json is None: raise ValueError("username not passed in")
-            username = request.json['username']
-            options, state = self.webauthn_manager.authentication.begin(username)
+            options, state = self.webauthn_manager.authentication.begin()
             session['auth_state'] = state
             return options
 

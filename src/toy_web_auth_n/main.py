@@ -1,28 +1,15 @@
-import logging
 import sys
 import os
 from pathlib import Path
 
-from toy_web_auth_n.WebAuthnManager import WebAuthnApp
+from toy_web_auth_n import WebAuthnApp
+from toy_web_auth_n.config import LoggingConfig
 
-class LoggerSetup:
-    @staticmethod
-    def setup():
-        logger = logging.getLogger()
-        logger.setLevel(logging.DEBUG)
+# Set up logging configuration first
+LoggingConfig.setup()
 
-        fh = logging.FileHandler('webauthn.log')
-        fh.setLevel(logging.DEBUG)
-
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setLevel(logging.INFO)
-
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        fh.setFormatter(formatter)
-        ch.setFormatter(formatter)
-
-        logger.addHandler(fh)
-        logger.addHandler(ch)
+# Initialize logger
+logger = LoggingConfig.get_logger(__name__)
 
 def check_certificates():
     """Check if the required certificates exist."""
@@ -31,23 +18,24 @@ def check_certificates():
     key_path = os.path.join(cert_dir, "localhost-key.pem")
 
     if not os.path.exists(cert_path) or not os.path.exists(key_path):
-        print("Error: SSL certificates not found!")
-        print(f"Expected certificate files in: {cert_dir}")
-        print("Please run: toy-webauthn-generate-certs")
-        print("Or install mkcert and run: mkcert -install && mkcert localhost")
+        logger.error("SSL certificates not found!")
+        logger.error(f"Expected certificate files in: {cert_dir}")
+        logger.error("Please run: toy-webauthn-generate-certs")
+        logger.error("Or install mkcert and run: mkcert -install && mkcert localhost")
         sys.exit(1)
 
     return cert_path, key_path
 
 def main():
-    LoggerSetup.setup()
-    logging.info("Starting ToyWebAuthN server...")
+    logger.info("Starting ToyWebAuthN server...")
 
     try:
         cert_path, key_path = check_certificates()
-        logging.info(f"Using certificates from: {os.path.dirname(cert_path)}")
+        logger.info(f"Using certificates from: {os.path.dirname(cert_path)}")
 
         app = WebAuthnApp()
+        logger.info("WebAuthn application initialized")
+        logger.info("Starting Flask server...")
         app.app.run(
             host='localhost',
             port=5000,
@@ -55,7 +43,7 @@ def main():
             debug=True
         )
     except Exception as e:
-        logging.error(f"Error starting server: {e}")
+        logger.error(f"Error starting server: {e}", exc_info=True)
         sys.exit(1)
 
 if __name__ == "__main__":

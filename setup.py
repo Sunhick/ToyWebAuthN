@@ -125,6 +125,7 @@ setup(
         "python-dotenv>=0.17.0",
         "pymongo>=4.11.3",
         "cbor2>=5.6.5",
+        "colorlog>=6.8.0",  # Added for colored logging
     ],
     extras_require={
         "dev": [
