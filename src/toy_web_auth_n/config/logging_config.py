@@ -2,22 +2,20 @@ import os
 import sys
 import logging
 import logging.config
-from typing import Optional, Union
 import colorlog
 from pathlib import Path
-
 
 class LoggingConfig:
     """Manages logging configuration for the application."""
 
     @staticmethod
-    def setup(config_path: Optional[str] = None, default_level: int = logging.INFO) -> bool:
+    def setup(config_path=None, log_level=logging.INFO):
         """
         Set up logging configuration.
 
         Args:
-            config_path (str, optional): Path to the logging configuration file
-            default_level (int): Default logging level if config file is not found
+            config_path (str): Path to the logging configuration file
+            log_level (int): Logging level to use for the application
 
         Returns:
             bool: True if configuration was successful, False otherwise
@@ -54,7 +52,7 @@ class LoggingConfig:
                 secondary_log_colors={},
                 style='%'
             ))
-            console_handler.setLevel(logging.INFO)
+            console_handler.setLevel(log_level)
 
             # Set up file handler
             file_handler = logging.FileHandler(os.path.join(log_dir, 'webauthn.log'))
@@ -62,21 +60,27 @@ class LoggingConfig:
                 fmt=base_format,
                 datefmt=date_format
             ))
+            # File handler always logs at DEBUG level to capture all messages
             file_handler.setLevel(logging.DEBUG)
 
             # Configure root logger
-            root.setLevel(logging.DEBUG)
+            root.setLevel(logging.DEBUG)  # Allow all messages to be processed
             root.addHandler(console_handler)
             root.addHandler(file_handler)
 
+            # Set levels for specific loggers
+            logging.getLogger('toy_web_auth_n').setLevel(log_level)
+            logging.getLogger('werkzeug').setLevel(max(log_level, logging.INFO))  # Keep werkzeug at INFO or higher
+
             # Test logging configuration
             root.info("Logging system initialized")
+            root.debug(f"Console logging level set to: {logging.getLevelName(log_level)}")
             return True
 
         except Exception as e:
             # Basic configuration in case of any error
             logging.basicConfig(
-                level=default_level,
+                level=log_level,
                 format=base_format,
                 datefmt=date_format
             )
@@ -84,7 +88,7 @@ class LoggingConfig:
             return False
 
     @staticmethod
-    def get_logger(name: str) -> logging.Logger:
+    def get_logger(name):
         """
         Get a logger instance with the specified name.
 
@@ -97,7 +101,7 @@ class LoggingConfig:
         return logging.getLogger(name)
 
     @staticmethod
-    def add_file_handler(logger: logging.Logger, filename: str, level: int = logging.DEBUG) -> None:
+    def add_file_handler(logger, filename, level=logging.DEBUG):
         """
         Add a file handler to the specified logger.
 

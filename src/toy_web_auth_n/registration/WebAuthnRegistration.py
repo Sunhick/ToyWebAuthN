@@ -28,10 +28,13 @@ import json
 import logging
 import os
 
+from fido2.cose import ES256, RS256
 from fido2.utils import websafe_decode, websafe_encode
 from fido2.webauthn import (
     AttestationObject,
     CollectedClientData,
+    PublicKeyCredentialParameters,
+    PublicKeyCredentialType,
     PublicKeyCredentialUserEntity,
     UserVerificationRequirement,
 )
@@ -59,22 +62,38 @@ class WebAuthnRegistration(WebAuthnBase):
             tuple: (JSON options for the client, state for the server)
             The JSON options include challenge and registration parameters.
         """
+        logger = logging.getLogger(__name__)
+        logger.info(f"Beginning registration process for username: {username}")
+
+        # Generate user ID and create user entity
         user_id = os.urandom(32)
         user = PublicKeyCredentialUserEntity(
             id=user_id,
             name=username,
             display_name=username,
         )
-        logging.info(f"username: {username} userId: {user_id}")
+        logger.debug(f"Created user entity - ID: {websafe_encode(user_id)}, Name: {username}")
 
+        # Check if user already exists
+        existing_user = self.db.credentials.find_one({'username': username})
+        if existing_user:
+            logger.warning(f"User {username} already has registered credentials")
+            logger.debug(f"Existing credentials: {existing_user}")
+
+        # Begin registration with the server
+        logger.debug("Initiating server registration process")
         options, state = self.server.register_begin(
             user,
             user_verification=UserVerificationRequirement.PREFERRED
         )
+        logger.debug(f"Server registration state: {state}")
 
-        # Create a base dictionary for options
+        # Create registration options
+        challenge = os.urandom(32)
+        logger.debug(f"Generated challenge: {websafe_encode(challenge)}")
+
         registration_options = {
-            'challenge': websafe_encode(os.urandom(32)),
+            'challenge': websafe_encode(challenge),
             'rp': {
                 'id': 'localhost',
                 'name': self.server.rp.name
@@ -85,8 +104,8 @@ class WebAuthnRegistration(WebAuthnBase):
                 'displayName': user.display_name
             },
             'pubKeyCredParams': [
-                {'type': 'public-key', 'alg': -7},  # ES256
-                {'type': 'public-key', 'alg': -257}  # RS256
+                PublicKeyCredentialParameters(type=PublicKeyCredentialType.PUBLIC_KEY, alg=ES256.ALGORITHM),
+                PublicKeyCredentialParameters(type=PublicKeyCredentialType.PUBLIC_KEY, alg=RS256.ALGORITHM)
             ],
             'authenticatorSelection': {
                 'authenticatorAttachment': 'cross-platform',
@@ -95,13 +114,17 @@ class WebAuthnRegistration(WebAuthnBase):
             }
         }
 
-        # Update with any additional options from the server
+        # Update with server options
         server_options = self._serialize_fido2_data(options)
         if isinstance(server_options, dict):
+            logger.debug(f"Incorporating additional server options: {server_options}")
             registration_options.update(server_options)
 
         # Remove extensions if present
         registration_options.pop('extensions', None)
+
+        logger.info("Registration options prepared successfully")
+        logger.debug(f"Final registration options: {registration_options}")
 
         return json.dumps({'publicKey': registration_options}), state
 
@@ -117,7 +140,14 @@ class WebAuthnRegistration(WebAuthnBase):
             str: JSON response indicating success or failure
             May include a 400 status code if verification fails
         """
+        logger = logging.getLogger(__name__)
+        logger.info("Beginning registration completion process")
+        logger.debug(f"Registration state: {state}")
+        logger.debug(f"Received data: {data}")
+
         try:
+            # Parse client data and attestation object
+            logger.debug("Parsing client data and attestation object")
             client_data = CollectedClientData(
                 websafe_decode(data['response']['clientDataJSON'])
             )
@@ -125,19 +155,33 @@ class WebAuthnRegistration(WebAuthnBase):
                 websafe_decode(data['response']['attestationObject'])
             )
 
-            logging.info(f"Received origin: {client_data.origin}")
-            logging.debug(f"Attestation object: {attestation_object}")
+            # Log security-relevant information
+            logger.info(f"Client data origin: {client_data.origin}")
+            logger.info(f"Client data type: {client_data.type}")
+            logger.debug(f"Client data challenge: {websafe_encode(client_data.challenge)}")
+            logger.debug(f"Attestation format: {attestation_object.fmt}")
+            logger.debug(f"Attestation statement: {attestation_object.att_stmt}")
 
+            # Complete registration with server
+            logger.debug("Completing server registration")
             auth_data = self.server.register_complete(
                 state,
                 client_data,
                 attestation_object
             )
 
-            credential_id = auth_data.credential_data.credential_id
-            public_key = auth_data.credential_data.public_key
+            # Extract credential information
+            credential_id = auth_data.credential_data.credential_id # type: ignore
+            public_key = auth_data.credential_data.public_key # type: ignore
             sign_count = getattr(auth_data, 'sign_count', 0)
 
+            logger.debug(f"Credential ID: {websafe_encode(credential_id)}")
+            logger.debug(f"Initial sign count: {sign_count}")
+            logger.debug(f"Auth data flags: {auth_data.flags}")
+            logger.info(f"User present: {auth_data.is_user_present()}")
+            logger.info(f"User verified: {auth_data.is_user_verified()}")
+
+            # Prepare credential dictionary
             credential_dict = {
                 'type': 'public-key',
                 'id': credential_id,
@@ -145,13 +189,14 @@ class WebAuthnRegistration(WebAuthnBase):
                 'sign_count': sign_count,
             }
 
+            # Serialize public key for storage
             serialized_public_key = Credential.serialize_public_key(
                 credential_dict['public_key']
             )
-            logging.info(f"raw public key: {credential_dict['public_key']}")
-            logging.info(f"type public key: {type(credential_dict['public_key'])}")
-            logging.info(f"serialized key: {serialized_public_key}")
+            logger.debug(f"Public key type: {type(credential_dict['public_key'])}")
+            logger.debug(f"Serialized public key: {serialized_public_key}")
 
+            # Prepare MongoDB document
             mongo_credential_dict = {
                 'type': credential_dict['type'],
                 'id': websafe_encode(credential_dict['id']),
@@ -161,13 +206,16 @@ class WebAuthnRegistration(WebAuthnBase):
                 'userId': data['user']['id'],
                 'displayName': data['user']['displayName'],
             }
+
+            # Store credential in database
+            logger.debug("Storing credential in database")
             self.db.credentials.insert_one(mongo_credential_dict)
 
-            logging.info("Stored credential:")
-            logging.info(f"  Type: {credential_dict['type']}")
-            logging.info(f"  ID: {websafe_encode(credential_dict['id'])}")
-            logging.info(f"  Public Key: {credential_dict['public_key']}")
-            logging.info(f"  Sign Count: {credential_dict['sign_count']}")
+            # Log successful registration
+            logger.info("Successfully registered new credential:")
+            logger.info(f"  Username: {data['user']['name']}")
+            logger.info(f"  Credential ID: {websafe_encode(credential_dict['id'])}")
+            logger.info(f"  Initial sign count: {credential_dict['sign_count']}")
 
             return json.dumps({
                 'status': 'success',
@@ -177,10 +225,11 @@ class WebAuthnRegistration(WebAuthnBase):
             })
 
         except Exception as e:
-            logging.error(
-                f"Error in register_complete: {str(e)}",
+            logger.error(
+                f"Registration completion failed: {str(e)}",
                 exc_info=True
             )
+            logger.debug(f"Failed registration data: {data}")
             return json.dumps({
                 'status': 'error',
                 'message': str(e)
