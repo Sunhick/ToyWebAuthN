@@ -19,8 +19,9 @@ Dependencies:
 """
 
 from typing import Any, Dict, List, Union
+
+from fido2.server import Fido2Server
 from fido2.utils import websafe_encode
-from fido2.webauthn import Fido2Server
 from pymongo.database import Database
 
 
@@ -66,14 +67,13 @@ class WebAuthnBase:
         """
         if isinstance(data, bytes):
             return websafe_encode(data)
-        elif isinstance(data, dict):
+        if isinstance(data, dict):
             return {
                 key: self._serialize_fido2_data(value)
                 for key, value in data.items()
             }
-        elif isinstance(data, list):
+        if isinstance(data, list):
             return [self._serialize_fido2_data(item) for item in data]
-        elif hasattr(data, '__dict__'):
-            # Convert object to dictionary and serialize its contents
-            return self._serialize_fido2_data(vars(data))
-        return data
+        if hasattr(data, '__dict__'):
+            return self._serialize_fido2_data(data.__dict__)
+        return str(data)

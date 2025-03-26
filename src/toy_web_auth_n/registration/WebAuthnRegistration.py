@@ -28,7 +28,7 @@ import json
 import logging
 import os
 
-from fido2.utils import websafe_encode, websafe_decode
+from fido2.utils import websafe_decode, websafe_encode
 from fido2.webauthn import (
     AttestationObject,
     CollectedClientData,
