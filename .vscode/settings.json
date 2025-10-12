@@ -1,10 +1,11 @@
 {
     "python.defaultInterpreterPath": "${workspaceFolder}/venv/bin/python",
-    "python.analysis.extraPaths": ["${workspaceFolder}/src"],
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/src"
+    ],
     "python.analysis.diagnosticMode": "workspace",
     "python.analysis.typeCheckingMode": "basic",
     "python.analysis.autoImportCompletions": true,
-
     // Python formatting settings
     "python.formatting.provider": "autopep8",
     "python.formatting.autopep8Args": [
@@ -12,7 +13,6 @@
         "--aggressive",
         "--aggressive"
     ],
-
     // Python linting settings
     "python.linting.enabled": true,
     "python.linting.pylintEnabled": true,
@@ -22,20 +22,20 @@
         "--extend-ignore=E203",
         "--per-file-ignores=__init__.py:F401"
     ],
-
     // Editor settings for Python files
     "[python]": {
         "editor.formatOnSave": true,
         "editor.formatOnPaste": false,
-        "editor.rulers": [79],
+        "editor.rulers": [
+            79
+        ],
         "editor.tabSize": 4,
         "editor.insertSpaces": true,
         "editor.detectIndentation": true,
         "editor.codeActionsOnSave": {
-            "source.organizeImports": true
+            "source.organizeImports": "explicit"
         }
     },
-
     // General editor settings
     "files.trimTrailingWhitespace": true,
     "files.insertFinalNewline": true

@@ -104,8 +104,8 @@ class WebAuthnRegistration(WebAuthnBase):
                 'displayName': user.display_name
             },
             'pubKeyCredParams': [
-                PublicKeyCredentialParameters(type=PublicKeyCredentialType.PUBLIC_KEY, alg=ES256.ALGORITHM),
-                PublicKeyCredentialParameters(type=PublicKeyCredentialType.PUBLIC_KEY, alg=RS256.ALGORITHM)
+                {'type': 'public-key', 'alg': ES256.ALGORITHM},
+                {'type': 'public-key', 'alg': RS256.ALGORITHM}
             ],
             'authenticatorSelection': {
                 'authenticatorAttachment': 'cross-platform',
@@ -166,8 +166,7 @@ class WebAuthnRegistration(WebAuthnBase):
             logger.debug("Completing server registration")
             auth_data = self.server.register_complete(
                 state,
-                client_data,
-                attestation_object
+                data
             )
 
             # Extract credential information

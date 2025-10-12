@@ -200,10 +200,7 @@ class WebAuthnAuthentication(WebAuthnBase):
             self.server.authenticate_complete(
                 state,
                 [credential],
-                credential_id,
-                client_data,
-                auth_data,
-                signature
+                data
             )
 
             # Verify user presence and verification

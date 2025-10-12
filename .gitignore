@@ -176,3 +176,4 @@ cython_debug/
 # node/npm
 node_modules/
 src/toy_web_auth_n/static/js/*.js
+choices.xml
