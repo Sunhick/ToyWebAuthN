@@ -111,7 +111,8 @@ class WebAuthnRegistration(WebAuthnBase):
                 'authenticatorAttachment': 'cross-platform',
                 'userVerification': 'preferred',  # Enable user verification
                 'requireResidentKey': False  # Optional: True for resident keys
-            }
+            },
+            'hints': ['security-key']
         }
 
         # Update with server options

@@ -21,7 +21,7 @@ Dependencies:
 import json
 import logging
 
-from fido2.utils import websafe_encode, websafe_decode
+from fido2.utils import websafe_decode, websafe_encode
 from fido2.webauthn import (
     AuthenticatorData,
     CollectedClientData,
@@ -111,7 +111,8 @@ class WebAuthnAuthentication(WebAuthnBase):
             ],
             'timeout': getattr(options.public_key, 'timeout', 60000),
             'userVerification': 'preferred',  # Enable user verification
-            'rpId': 'localhost'
+            'rpId': 'localhost',
+            'hints': ['security-key'] # 'security-key', 'client-device', 'hybrid'
         }
 
         logger.debug(f"Authentication options: {public_key_credential_request_options}")
