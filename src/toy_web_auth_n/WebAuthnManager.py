@@ -29,6 +29,7 @@ Dependencies:
 """
 
 import os
+import subprocess
 
 from fido2.server import Fido2Server
 from fido2.webauthn import (
@@ -46,6 +47,18 @@ from toy_web_auth_n.registration.WebAuthnRegistration import WebAuthnRegistratio
 
 # Initialize logger
 logger = LoggingConfig.get_logger(__name__)
+
+
+def get_device_ip():
+    """Get the device's IP address using ifconfig."""
+    try:
+        result = subprocess.run(['ifconfig'], capture_output=True, text=True)
+        for line in result.stdout.split('\n'):
+            if 'inet ' in line and '127.0.0.1' not in line:
+                return line.split()[1]
+    except Exception:
+        pass
+    return 'localhost'  # fallback
 
 
 class WebAuthnManager:
@@ -67,16 +80,18 @@ class WebAuthnManager:
         authentication (WebAuthnAuthentication): Authentication handler
     """
 
-    origins = [
-        "https://localhost",
-        "https://localhost:5000",
-        "https://127.0.0.1",
-        "https://[::1]",
-    ]
-
     def __init__(self, db):
         """Initialize the WebAuthn manager with default configuration."""
-        self.rp = PublicKeyCredentialRpEntity(id="localhost", name="WebAuthN Demo")
+        device_ip = get_device_ip()
+        
+        self.origins = [
+            f"https://{device_ip}",
+            f"https://{device_ip}:5000",
+            "https://127.0.0.1",
+            "https://[::1]",
+        ]
+        
+        self.rp = PublicKeyCredentialRpEntity(id=device_ip, name="WebAuthN Demo")
         self.server = Fido2Server(
             self.rp,
             attestation=AttestationConveyancePreference.NONE,

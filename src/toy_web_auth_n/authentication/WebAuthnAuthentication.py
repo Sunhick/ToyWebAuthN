@@ -20,6 +20,7 @@ Dependencies:
 
 import json
 import logging
+import subprocess
 
 from fido2.utils import websafe_decode, websafe_encode
 from fido2.webauthn import (
@@ -30,6 +31,18 @@ from fido2.webauthn import (
 
 from toy_web_auth_n.common.Credential import Credential
 from toy_web_auth_n.common.WebAuthnBase import WebAuthnBase
+
+
+def get_device_ip():
+    """Get the device's IP address using ifconfig."""
+    try:
+        result = subprocess.run(['ifconfig'], capture_output=True, text=True)
+        for line in result.stdout.split('\n'):
+            if 'inet ' in line and '127.0.0.1' not in line:
+                return line.split()[1]
+    except Exception:
+        pass
+    return 'localhost'  # fallback
 
 
 class WebAuthnAuthentication(WebAuthnBase):
@@ -111,7 +124,7 @@ class WebAuthnAuthentication(WebAuthnBase):
             ],
             'timeout': getattr(options.public_key, 'timeout', 60000),
             'userVerification': 'preferred',  # Enable user verification
-            'rpId': 'localhost',
+            'rpId': get_device_ip(),
             'hints': ['security-key'] # 'security-key', 'client-device', 'hybrid'
         }
 

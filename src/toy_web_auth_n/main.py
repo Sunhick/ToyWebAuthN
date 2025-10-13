@@ -1,5 +1,6 @@
 import sys
 import os
+import subprocess
 from pathlib import Path
 
 from toy_web_auth_n import WebAuthnApp
@@ -11,17 +12,29 @@ LoggingConfig.setup()
 # Initialize logger
 logger = LoggingConfig.get_logger(__name__)
 
+def get_device_ip():
+    """Get the device's IP address using ifconfig."""
+    try:
+        result = subprocess.run(['ifconfig'], capture_output=True, text=True)
+        for line in result.stdout.split('\n'):
+            if 'inet ' in line and '127.0.0.1' not in line:
+                return line.split()[1]
+    except Exception:
+        pass
+    return 'localhost'  # fallback
+
 def check_certificates():
     """Check if the required certificates exist."""
     cert_dir = os.path.expanduser("~/.toy-webauthn-certs")
-    cert_path = os.path.join(cert_dir, "localhost.pem")
-    key_path = os.path.join(cert_dir, "localhost-key.pem")
+    device_ip = get_device_ip()
+    cert_path = os.path.join(cert_dir, f"{device_ip}.pem")
+    key_path = os.path.join(cert_dir, f"{device_ip}-key.pem")
 
     if not os.path.exists(cert_path) or not os.path.exists(key_path):
         logger.error("SSL certificates not found!")
         logger.error(f"Expected certificate files in: {cert_dir}")
         logger.error("Please run: toy-webauthn-generate-certs")
-        logger.error("Or install mkcert and run: mkcert -install && mkcert localhost")
+        logger.error(f"Or install mkcert and run: mkcert -install && mkcert {device_ip}")
         sys.exit(1)
 
     return cert_path, key_path
@@ -37,7 +50,7 @@ def main():
         logger.info("WebAuthn application initialized")
         logger.info("Starting Flask server...")
         app.app.run(
-            host='localhost',
+            host='0.0.0.0',
             port=5000,
             ssl_context=(cert_path, key_path),
             debug=True
