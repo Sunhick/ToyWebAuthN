@@ -154,7 +154,7 @@ setup(
     entry_points={
         'console_scripts': [
             'toy-webauthn=toy_web_auth_n.main:main',
-            'toy-webauthn-generate-certs=setup:generate_certs_command',
+            'toy-webauthn-generate-certs=generate_certs:run_mkcert',
         ],
     },
     cmdclass={

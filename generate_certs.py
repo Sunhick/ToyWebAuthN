@@ -3,6 +3,17 @@ import os
 import subprocess
 import sys
 
+def get_device_ip():
+    """Get the device's IP address using ifconfig."""
+    try:
+        result = subprocess.run(['ifconfig'], capture_output=True, text=True)
+        for line in result.stdout.split('\n'):
+            if 'inet ' in line and '127.0.0.1' not in line:
+                return line.split()[1]
+    except Exception:
+        pass
+    return 'localhost'  # fallback
+
 def check_mkcert():
     """Check if mkcert is installed and available in PATH"""
     try:
@@ -46,12 +57,16 @@ def run_mkcert():
         os.makedirs(cert_dir, exist_ok=True)
         print(f"Created certificate directory: {cert_dir}")
 
-        # Generate certificates for localhost
-        cert_path = os.path.join(cert_dir, "localhost.pem")
-        key_path = os.path.join(cert_dir, "localhost-key.pem")
-        print("Generating localhost certificates...")
+        # Get device IP
+        device_ip = get_device_ip()
+        print(f"Detected device IP: {device_ip}")
+
+        # Generate certificates for device IP
+        cert_path = os.path.join(cert_dir, f"{device_ip}.pem")
+        key_path = os.path.join(cert_dir, f"{device_ip}-key.pem")
+        print(f"Generating certificates for {device_ip}...")
         result = subprocess.run(
-            ["mkcert", "-cert-file", cert_path, "-key-file", key_path, "localhost"],
+            ["mkcert", "-cert-file", cert_path, "-key-file", key_path, device_ip],
             check=False,
             capture_output=True,
             text=True
