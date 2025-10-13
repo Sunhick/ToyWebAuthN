@@ -80,14 +80,15 @@ class WebAuthnManager:
         authentication (WebAuthnAuthentication): Authentication handler
     """
 
-    def __init__(self, db):
+    def __init__(self, db, port=5000):
         """Initialize the WebAuthn manager with default configuration."""
         device_ip = get_device_ip()
         
         self.origins = [
             f"https://{device_ip}",
-            f"https://{device_ip}:5000",
+            f"https://{device_ip}:{port}",
             "https://127.0.0.1",
+            f"https://127.0.0.1:{port}",
             "https://[::1]",
         ]
         
@@ -128,7 +129,7 @@ class WebAuthnApp:
         webauthn_manager (WebAuthnManager): The WebAuthn manager instance
     """
 
-    def __init__(self):
+    def __init__(self, port=5000):
         """Initialize the Flask application with WebAuthn support."""
         template_dir = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), 'templates'
@@ -141,7 +142,7 @@ class WebAuthnApp:
         client = MongoClient(mongodb_config.get_connection_url())
         db = client[mongodb_config.get_database_name()]
 
-        self.webauthn_manager = WebAuthnManager(db)
+        self.webauthn_manager = WebAuthnManager(db, port)
         logger.info("WebAuthn manager initialized with MongoDB configuration")
 
         self.setup_routes()

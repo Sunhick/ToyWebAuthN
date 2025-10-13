@@ -1,6 +1,6 @@
-import sys
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 from toy_web_auth_n import WebAuthnApp
@@ -46,12 +46,13 @@ def main():
         cert_path, key_path = check_certificates()
         logger.info(f"Using certificates from: {os.path.dirname(cert_path)}")
 
-        app = WebAuthnApp()
+        port = 6000
+        app = WebAuthnApp(port)
         logger.info("WebAuthn application initialized")
         logger.info("Starting Flask server...")
         app.app.run(
             host='0.0.0.0',
-            port=5000,
+            port=port,
             ssl_context=(cert_path, key_path),
             debug=True
         )
