@@ -35,7 +35,7 @@ from fido2.webauthn import (
     PublicKeyCredentialRpEntity,
     AttestationConveyancePreference,
 )
-from flask import Flask, request, render_template, session
+from flask import Flask, request, render_template, session, redirect, url_for
 from pymongo import MongoClient
 
 from toy_web_auth_n.authentication.WebAuthnAuthentication import (
@@ -184,6 +184,7 @@ class WebAuthnApp:
             username = request.json['username']
             options, state = self.webauthn_manager.authentication.begin(username)
             session['auth_state'] = state
+            session['username'] = username
             return options
 
         @self.app.route('/authenticate/complete', methods=['POST'])
@@ -195,9 +196,31 @@ class WebAuthnApp:
                 JSON body with assertion response from authenticator
 
             Returns:
-                JSON object with authentication status
+                JSON object with authentication status or redirect to success page
             """
             state = session.pop('auth_state')
-            return self.webauthn_manager.authentication.complete(
+            result = self.webauthn_manager.authentication.complete(
                 state, request.json
             )
+            
+            # Check if authentication was successful
+            import json as json_module
+            result_data = json_module.loads(result)
+            if result_data.get('status') == 'success':
+                return json_module.dumps({'redirect': '/success'})
+            else:
+                return result
+
+        @self.app.route('/success')
+        def success():
+            """Display success page after authentication."""
+            username = session.get('username')
+            if not username:
+                return redirect(url_for('index'))
+            return render_template('success.html', username=username)
+
+        @self.app.route('/signout', methods=['POST'])
+        def signout():
+            """Sign out user and clear session."""
+            session.clear()
+            return '', 204

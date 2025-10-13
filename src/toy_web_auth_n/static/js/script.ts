@@ -143,7 +143,12 @@ async function authenticate(): Promise<void> {
 
         const result = await completeResponse.json();
         console.log("Authentication result:", result);
-        alert(result.status);
+        
+        if (result.redirect) {
+            window.location.href = result.redirect;
+        } else {
+            alert(result.status);
+        }
     } catch (error) {
         console.error("Error in authentication process:", error);
         alert("Error: " + (error as Error).message);
